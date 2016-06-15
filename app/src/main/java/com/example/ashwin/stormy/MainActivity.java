@@ -51,6 +51,11 @@ public class MainActivity extends AppCompatActivity {
                     {
                         Log.v(TAG,response.body().string());
                     }
+                    else
+                    {
+                        Log.v(TAG, response.body().string());
+                        alertUserAboutError();
+                    }
                 } catch (IOException e) {
                     Log.e(TAG, "Exception caught", e);
                 }
@@ -58,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+    }
+
+    private void alertUserAboutError() {
+        AlertDialogFragment dialog = new AlertDialogFragment();
+        dialog.show(getFragmentManager(),"error_dialog");
 
     }
 
