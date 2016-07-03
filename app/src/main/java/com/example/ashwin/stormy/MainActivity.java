@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
     public static  final  String TAG = MainActivity.class.getSimpleName();
 
     private CurrentWeather mCurrentWeather;
+    
 
     @BindView(R.id.humidityValue) TextView mHumidityValue;
     @BindView(R.id.precipitationValue) TextView mPrecipitationValue;
@@ -45,6 +47,8 @@ public class MainActivity extends ActionBarActivity {
     @BindView(R.id.locationLabel) TextView mLocationLabel;
     @BindView(R.id.iconView) ImageView mIconView;
     @BindView(R.id.timeLabel) TextView mTimeLabel;
+    @BindView(R.id.refreshImageView) ImageView mRefreshImageView;
+    @BindView(R.id.progressBar) ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +56,31 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        mProgressBar.setVisibility(View.INVISIBLE);
+
+        final double latitude = 37.8267;
+        final double longitude = -122.423;
+
+        mRefreshImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getForecast(latitude,longitude);
+            }
+        });
+
+
+
+        getForecast(latitude,longitude);
+
+    }
+
+    private void getForecast(double latitude,double longitude) {
         String apiKey = "d0e1dd21273dac6ef385281a041822ae";
-        double latitude = 37.8267;
-        double longitude = -122.423;
         String forecastUrl = "https://api.forecast.io/forecast/"+ apiKey +"/" + latitude + "," + longitude ;
         if(isNetworkAvaialable()) {
+            mRefreshImageView.setVisibility(View.INVISIBLE);
+            mProgressBar.setVisibility(View.VISIBLE);
+
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
                     .url(forecastUrl)
@@ -66,6 +90,14 @@ public class MainActivity extends ActionBarActivity {
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                            mRefreshImageView.setVisibility(View.VISIBLE);
+                        }
+                    });
+                    alertUserAboutError();
 
                 }
 
@@ -75,6 +107,13 @@ public class MainActivity extends ActionBarActivity {
                         String jsonData = response.body().string();
                         if (response.isSuccessful()) {
                             Log.v(TAG, jsonData);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mProgressBar.setVisibility(View.INVISIBLE);
+                                    mRefreshImageView.setVisibility(View.VISIBLE);
+                                }
+                            });
                             mCurrentWeather = getCurrentDetails(jsonData);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -99,7 +138,6 @@ public class MainActivity extends ActionBarActivity {
         else{
             Toast.makeText(MainActivity.this,"Some Problem with the Network",Toast.LENGTH_LONG).show();
         }
-
     }
 
     private void updateDisplay() {
