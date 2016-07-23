@@ -1,48 +1,43 @@
 package com.example.ashwin.stormy;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ashwin.stormy.weather.Current;
+import com.example.ashwin.stormy.weather.Day;
+import com.example.ashwin.stormy.weather.Forecast;
+import com.example.ashwin.stormy.weather.Hour;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.jar.Manifest;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -70,7 +65,7 @@ public class MainActivity extends ActionBarActivity implements
     //private double latitude;
     //private double longitude;
 
-    private CurrentWeather mCurrentWeather;
+    private Forecast mForecast;
     private GoogleApiClient mGoogleApiClient;
 
     @BindView(R.id.humidityValue) TextView mHumidityValue;
@@ -170,7 +165,7 @@ public class MainActivity extends ActionBarActivity implements
                                     mRefreshImageView.setVisibility(View.VISIBLE);
                                 }
                             });
-                            mCurrentWeather = getCurrentDetails(jsonData);
+                            mForecast = getForecastDetails(jsonData);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -195,32 +190,94 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     private void updateDisplay() {
-        mTemperatureLabel.setText(mCurrentWeather.getTemperature() + "");
-        mTimeLabel.setText("At " + mCurrentWeather.getFormattedTime() + " it is");
-        mHumidityValue.setText(mCurrentWeather.getHumidity() + "");
-        mPrecipitationValue.setText(mCurrentWeather.getPrecipChance() + "");
-        mSummary.setText(mCurrentWeather.getSummary());
-        Drawable drawable = getResources().getDrawable(mCurrentWeather.getIconId());
+        mTemperatureLabel.setText(mForecast.getCurrent().getTemperature() + "");
+        mTimeLabel.setText("At " + mForecast.getCurrent().getFormattedTime() + " it is");
+        mHumidityValue.setText(mForecast.getCurrent().getHumidity() + "");
+        mPrecipitationValue.setText(mForecast.getCurrent().getPrecipChance() + "");
+        mSummary.setText(mForecast.getCurrent().getSummary());
+        Drawable drawable = getResources().getDrawable(mForecast.getCurrent().getIconId());
         mIconView.setImageDrawable(drawable);
         mLocationLabel.setText(addr);
 
     }
 
-    private CurrentWeather getCurrentDetails(String jsonData) throws JSONException {
+
+    private Forecast getForecastDetails(String jsonData) throws JSONException{
+
+        Forecast forecast = new Forecast();
+
+        forecast.setDays(getDailyDetails(jsonData));
+        forecast.setHours(getHourlyDetails(jsonData));
+
+        forecast.setCurrent(getCurrentDetails(jsonData));
+        return forecast;
+    }
+
+    private Hour[] getHourlyDetails(String jsonData) throws JSONException{
+        JSONObject forecast = new JSONObject(jsonData);
+        String timezone = forecast.getString("timezone");
+        JSONObject hourly = forecast.getJSONObject("hourly");
+        JSONArray data = hourly.getJSONArray("data");
+
+
+        Hour[] hours = new Hour[data.length()];
+
+        for(int i=0;i<data.length();i++)
+        {
+            JSONObject jsonHour = data.getJSONObject(i);
+            Hour hour = new Hour();
+
+            hour.setSummary(jsonHour.getString("summary"));
+            hour.setTemperature(jsonHour.getDouble("temperature"));
+            hour.setIcon(jsonHour.getString("icon"));
+            hour.setTime(jsonHour.getLong("time"));
+            hour.setTimezone(timezone);
+
+            hours[i] = hour;
+        }
+        return hours;
+    }
+
+    private Day[] getDailyDetails(String jsonData) throws JSONException{
+        JSONObject forecast = new JSONObject(jsonData);
+        String timezone = forecast.getString("timezone");
+        JSONObject daily = forecast.getJSONObject("daily");
+        JSONArray data = daily.getJSONArray("data");
+
+
+        Day[] days = new Day[data.length()];
+
+        for(int i=0;i<data.length();i++)
+        {
+            JSONObject jsonDay = data.getJSONObject(i);
+            Day day = new Day();
+
+            day.setSummary(jsonDay.getString("summary"));
+            day.setTemperatureMax(jsonDay.getDouble("temperatureMax"));
+            day.setIcon(jsonDay.getString("icon"));
+            day.setTime(jsonDay.getLong("time"));
+            day.setTimezone(timezone);
+
+            days[i] = day;
+        }
+        return days;
+    }
+
+    private Current getCurrentDetails(String jsonData) throws JSONException {
         JSONObject forecast = new JSONObject(jsonData);
         JSONObject currently = forecast.getJSONObject("currently");
 
-        CurrentWeather mCurrentWeather = new CurrentWeather();
+        Current mCurrent = new Current();
 
-        mCurrentWeather.setTime(currently.getLong("time"));
-        mCurrentWeather.setHumidity(currently.getDouble("humidity"));
-        mCurrentWeather.setTemperature(currently.getDouble("temperature"));
-        mCurrentWeather.setPrecipChance(currently.getDouble("precipProbability"));
-        mCurrentWeather.setSummary(currently.getString("summary"));
-        mCurrentWeather.setIcon(currently.getString("icon"));
-        mCurrentWeather.setTimeZone(forecast.getString("timezone"));
+        mCurrent.setTime(currently.getLong("time"));
+        mCurrent.setHumidity(currently.getDouble("humidity"));
+        mCurrent.setTemperature(currently.getDouble("temperature"));
+        mCurrent.setPrecipChance(currently.getDouble("precipProbability"));
+        mCurrent.setSummary(currently.getString("summary"));
+        mCurrent.setIcon(currently.getString("icon"));
+        mCurrent.setTimeZone(forecast.getString("timezone"));
 
-        return mCurrentWeather;
+        return mCurrent;
     }
 
     private boolean isNetworkAvaialable() {
