@@ -1,6 +1,7 @@
 package com.example.ashwin.stormy;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -16,6 +17,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -41,6 +43,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -62,6 +65,8 @@ public class MainActivity extends ActionBarActivity implements
 
     private String addr ;
 
+    public static String DAILY_FORECAST = "DAILY_FORECAST";
+
     //private double latitude;
     //private double longitude;
 
@@ -77,6 +82,8 @@ public class MainActivity extends ActionBarActivity implements
     @BindView(R.id.timeLabel) TextView mTimeLabel;
     @BindView(R.id.refreshImageView) ImageView mRefreshImageView;
     @BindView(R.id.progressBar) ProgressBar mProgressBar;
+    @BindView(R.id.dailyButton) Button mDailyButton;
+    @BindView(R.id.hourlyButton) Button mHourlyButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -358,4 +365,14 @@ public class MainActivity extends ActionBarActivity implements
     public void onLocationChanged(Location location) {
         handleNewLocation(location);
     }
+
+
+    @OnClick (R.id.dailyButton)
+    public void startDailyActivity(View view)
+    {
+        Intent intent = new Intent(this,DailyForecastActivity.class);
+        intent.putExtra(DAILY_FORECAST,mForecast.getDays());
+        startActivity(intent);
+    }
 }
+

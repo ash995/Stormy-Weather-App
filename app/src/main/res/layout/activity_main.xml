@@ -10,7 +10,7 @@
                 android:paddingTop="@dimen/activity_vertical_margin"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 tools:context="com.example.ashwin.stormy.MainActivity"
-                android:background="#fc970b">
+                android:background="@drawable/bg_gradient">
 
 
     <TextView
@@ -151,5 +151,33 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_alignBottom="@+id/refreshImageView"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="HOURLY"
+            android:id="@+id/hourlyButton"
+            android:layout_weight="1"
+            android:background="#40ffffff"
+            android:textColor="#FFFFFFFF"
+            android:layout_marginRight="4dp"/>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="7 DAYS"
+            android:id="@+id/dailyButton"
+            android:layout_weight="1"
+            android:textColor="#ffffffff"
+            android:background="#40ffffff"
+            android:layout_marginLeft="4dp"/>
+    </LinearLayout>
 
 </RelativeLayout>
