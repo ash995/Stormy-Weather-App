@@ -67,6 +67,8 @@ public class MainActivity extends ActionBarActivity implements
 
     public static String DAILY_FORECAST = "DAILY_FORECAST";
 
+    public static String HOURLY_FORECAST = "HOURLY_FORECAST";
+
     //private double latitude;
     //private double longitude;
 
@@ -372,6 +374,14 @@ public class MainActivity extends ActionBarActivity implements
     {
         Intent intent = new Intent(this,DailyForecastActivity.class);
         intent.putExtra(DAILY_FORECAST,mForecast.getDays());
+        startActivity(intent);
+    }
+
+    @OnClick (R.id.hourlyButton)
+    public void startHourlyActivity(View view)
+    {
+        Intent intent = new Intent(this,HourlyForecastActivity.class);
+        intent.putExtra(HOURLY_FORECAST,mForecast.getHours());
         startActivity(intent);
     }
 }
